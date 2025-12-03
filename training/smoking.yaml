@@ -1,0 +1,5 @@
+train: alldatav1_relabel/train/images
+val: alldatav1_relabel/valid/images
+
+nc: 1
+names: ["smoking"]

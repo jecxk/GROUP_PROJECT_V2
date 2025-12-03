@@ -1,0 +1,21 @@
+# Ignore dataset
+training/alldatav1_relabel/
+
+# Ignore YOLO runs folder
+runs/
+**/runs/
+
+# Ignore trained weights
+*.pt
+*.onnx
+
+# Ignore large videos
+*.mp4
+*.avi
+
+# Ignore cache files
+*.cache
+*.log
+
+# Ignore Ultralytics metadata
+ultralytics_settings.yaml
