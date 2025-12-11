@@ -1,20 +1,19 @@
 from ultralytics import YOLO
 
 def main():
-    model = YOLO("yolo11n.pt")  # model nhỏ nhất, nhanh nhất
+    model = YOLO("yolo11s.pt")
 
     model.train(
-        data="smoking.yaml",
-        epochs=20,
+        data="../data.yaml",
+        epochs=60,        # giữ như bạn đang chạy
         imgsz=640,
-        batch=8,
-        device="cpu",          # QUAN TRỌNG: bạn không có GPU
+        batch=8,          # <<< GIẢM từ 16 xuống 8
+        device=0,
+        workers=4,
         pretrained=True,
-        workers=1              # tránh lỗi Windows
+        cache=False,      # RAM bạn hơi hạn chế, tắt cache ảnh
+        close_mosaic=10
     )
-
-    # Export sang ONNX để đưa vào app Android
-    model.export(format="onnx")
 
 if __name__ == "__main__":
     main()

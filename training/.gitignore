@@ -1,0 +1,19 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Datasets (nếu sau này bạn copy dataset vào repo thì vẫn không bị push)
+datasets/
+*.zip
+
+# YOLO training outputs & logs
+training/runs/
+training/results/
+OUTPUT/
+runs/
+
+# Hệ điều hành
+Thumbs.db
