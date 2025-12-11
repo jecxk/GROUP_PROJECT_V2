@@ -1,142 +1,280 @@
-Smoking Detection System using YOLO11
+# GROUP_PROJECT_V2 – Smoking Detection with YOLO11
 
-This repository contains a complete pipeline for building a custom smoking-detection model using the Ultralytics YOLO11 framework.
-The project includes dataset configuration, training scripts, model export tools, and example code for running inference on video inputs.
-The trained model can later be integrated into a mobile application for real-time smoking detection.
+This repository contains our upgraded **smoking detection** project using **Ultralytics YOLO11**.  
+It can detect:
 
-1. Project Structure
-smoking-project/
+- `cigarette`
+- `cigar`
+- `smoke`
+
+and run on:
+
+- single **images**
+- **video files**
+- **webcam / live camera**
+
+The project is trained and tested on an NVIDIA **GTX 1660 SUPER**, but it also works on CPU (slower).
+
+---
+
+## 1. Project Structure
+
+```text
+GROUP_PROJECT_V2/
+├─ training/
+│  ├─ train_smoking.py        # script to train YOLO11 on our dataset
+│  ├─ detect_image.py         # detect smoking on a single image
+│  ├─ detect_video.py         # detect smoking in a video file
+│  ├─ detect_webcam.py        # detect smoking from webcam (live)
+│  ├─ export_onnx.py          # export trained model to ONNX (optional, for mobile/app)
+│  └─ ... (internal YOLO/Ultralytics files)
 │
-├── android/                      # Mobile application (not yet integrated)
+├─ weights/
+│  └─ smoking_yolo11s_best.pt # fine-tuned YOLO11s model (smoking detector)
 │
-├── training/
-│   ├── train_smoking.py          # Script for training the YOLO11 model
-│   ├── detect_video.py           # Script for running detection on video input
-│   ├── export_onnx.py            # Export trained model to ONNX format
-│   ├── smoking.yaml              # Dataset configuration file
-│   └── alldatav1_relabel/        # Local dataset directory (ignored in Git)
-│
-└── .gitignore
+├─ data.yaml                  # YOLO dataset config (paths to train/val images & labels)
+├─ README.md                  # this file
+└─ .gitignore
+Note:
+The dataset itself is NOT included in this repo (to keep it small).
+You need to place your dataset on your own machine and update data.yaml accordingly.
 
+2. Requirements
+Python 3.9+ (project was tested with Python 3.9)
 
-Note: The dataset and large model files are excluded from version control to keep the repository compact.
+Recommended:
 
-2. Requirements and Installation
+NVIDIA GPU + CUDA 12.1 (for fast training & inference)
 
-Install required libraries:
+Libraries (installed via pip):
 
-pip install ultralytics
-pip install opencv-python
+bash
+Copy code
+pip install -U ultralytics opencv-python
+# If you have NVIDIA GPU + CUDA 12.1:
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# If you only have CPU:
+# pip install torch torchvision torchaudio   # (default CPU wheels from PyPI)
+You can also set up a virtual environment if you prefer.
 
+3. Getting Started
+3.1. Clone this repository
+bash
+Copy code
+git clone https://github.com/jecxk/GROUP_PROJECT_V2.git
+cd GROUP_PROJECT_V2
+3.2. (Optional) Check Python & CUDA
+bash
+Copy code
+python -c "import torch; print(torch.__version__); print('cuda?', torch.cuda.is_available()); print('gpus:', torch.cuda.device_count())"
+If cuda? True appears, you are using GPU. Otherwise, the scripts will still work on CPU (slower).
 
-Python 3.10+ is recommended.
+4. Using the Pre-trained Model (Detection Only)
+The repository already includes a trained model:
 
-3. Dataset Format
+text
+Copy code
+weights/smoking_yolo11s_best.pt
+You can use it directly without retraining.
 
-The project uses the standard YOLO dataset structure:
+All detection scripts are located in the training/ folder.
+Run them from inside that folder.
 
-dataset/
-├── images/
-│   ├── train/
-│   └── val/
-└── labels/
-    ├── train/
-    └── val/
+bash
+Copy code
+cd training
+4.1. Detect on a single image
+Open training/detect_image.py
 
+Edit these lines:
 
-Each label file follows YOLO format:
+python
+Copy code
+INPUT_IMAGE_PATH = r"FULL_PATH_TO_YOUR_IMAGE.jpg"
+OUTPUT_IMAGE_PATH = r"F:\BACH\GROUP_PROJECT\OUTPUT\output_image_smoking.jpg"
+Run:
 
-<class_id> <x_center> <y_center> <width> <height>
+bash
+Copy code
+cd training
+python detect_image.py
+A window will pop up showing the image with bounding boxes.
 
+The output image is saved to OUTPUT_IMAGE_PATH.
 
-Update smoking.yaml so that the train: and val: paths match your dataset structure.
+4.2. Detect on a video file
+Place your test video somewhere on your machine.
 
-4. Training the Model
+Open training/detect_video.py and edit:
 
-To train the smoking detection model:
+python
+Copy code
+INPUT_VIDEO_PATH = r"FULL_PATH_TO_YOUR_VIDEO.mp4"
+OUTPUT_VIDEO_PATH = r"F:\BACH\GROUP_PROJECT\OUTPUT\output_video_smoking.mp4"
+Run:
 
-python training/train_smoking.py
+bash
+Copy code
+cd training
+python detect_video.py
+A window will show the annotated video.
 
+Press q to stop early.
 
-The script performs:
+The processed video is saved to OUTPUT_VIDEO_PATH.
 
-Training using YOLO11n
+4.3. Detect from webcam (live)
+Open training/detect_webcam.py and check:
 
-20 epochs (configurable)
+python
+Copy code
+SAVE_VIDEO = False  # set True if you want to record webcam output
+OUTPUT_VIDEO_PATH = r"F:\BACH\GROUP_PROJECT\OUTPUT\output_webcam_smoking.mp4"
+Run:
 
-Image size 640
+bash
+Copy code
+cd training
+python detect_webcam.py
+The script opens the default webcam (source=0).
 
-Evaluation on the validation set
+Press q to exit.
 
-Saving the best model to:
+If SAVE_VIDEO = True, the recorded annotated stream is saved to OUTPUT_VIDEO_PATH.
 
-runs/detect/train*/weights/best.pt
+5. Training the Model (Optional)
+If you want to retrain / fine-tune the smoking detector, you can use train_smoking.py.
 
+5.1. Dataset Format
+We use the standard YOLO format:
 
-Training was conducted on CPU in this project, but GPU is recommended for faster performance.
+text
+Copy code
+your_dataset_root/
+├─ train/
+│  ├─ images/
+│  └─ labels/    # .txt files, YOLO format
+└─ valid/
+   ├─ images/
+   └─ labels/
+Each label .txt file contains lines like:
 
-5. Running Inference on a Video
+text
+Copy code
+0 x_center y_center width height
+1 ...
+2 ...
+Where class IDs:
 
-To run inference on a custom video file:
+0 → cigarette
 
-python training/detect_video.py
+1 → cigar
 
+2 → smoke
 
-The script will:
+(all normalized to 0–1 as in YOLO).
 
-Load the trained model
+5.2. Update data.yaml
+Example data.yaml:
 
-Process the input video
+yaml
+Copy code
+path: C:\BACH\datasets\smoking\alldatav1_relabel   # root of dataset on your machine
+train: train/images
+val: valid/images
 
-Display results in a window
+names:
+  0: cigarette
+  1: cigar
+  2: smoke
+Change the path: to match your local dataset location.
 
-Save the output video inside:
+5.3. Run training
+From inside training/:
 
-runs/predict/
+bash
+Copy code
+cd training
+python train_smoking.py
+The script (simplified) does:
 
+python
+Copy code
+from ultralytics import YOLO
 
-The detection video retains the original frame size to avoid distortion or zooming.
+def main():
+    model = YOLO("yolo11s.pt")  # YOLO11s base model
+    model.train(
+        data="data.yaml",
+        epochs=60,
+        imgsz=640,
+        batch=8,
+        device=0,   # use "cpu" if no GPU
+        workers=2,
+    )
+    model.export(format="onnx")  # optional, for app deployment
 
-6. Exporting the Model to ONNX
+if __name__ == "__main__":
+    main()
+Training outputs (runs, logs, etc.) are stored in training/runs/ and are ignored by git.
 
-To prepare the trained model for mobile or cross-platform deployment:
+6. Exporting to ONNX (for Apps / Mobile)
+If you want to use the model in a mobile app or another framework, you can export the fine-tuned weights to ONNX.
 
-python training/export_onnx.py
+Open training/export_onnx.py and edit:
 
+python
+Copy code
+MODEL_PATH = r"F:\BACH\GROUP_PROJECT\training\runs\detect\train6\weights\best.pt"
+EXPORT_DIR = r"F:\BACH\GROUP_PROJECT\EXPORT"
+MODEL_NAME = "smoking_yolo11s"
+Run:
 
-The exported model will be saved as:
+bash
+Copy code
+cd training
+python export_onnx.py
+You will get something like:
 
-runs/detect/train*/weights/best.onnx
+text
+Copy code
+EXPORT/smoking_yolo11s/smoking_yolo11s.onnx
+You can also create a simple labels.txt:
 
+text
+Copy code
+cigarette
+cigar
+smoke
+for use in your app.
 
-This ONNX model can later be used with ONNX Runtime Mobile, NNAPI, CoreML conversion, or other inference runtimes.
+7. Troubleshooting
+[ERROR] Không mở được video!
 
-7. Mobile App Integration (Planned)
+Check that INPUT_VIDEO_PATH is correct.
 
-The repository includes an Android project folder where future integration will occur.
-The planned workflow includes:
+Try copying the video into the repo, e.g. training/videos/test.mp4, and update the path.
 
-Converting the ONNX model for mobile inference
+CUDA / GPU not detected
 
-Implementing real-time camera input
+Run:
 
-Overlaying model predictions on screen
+bash
+Copy code
+python -c "import torch; print(torch.__version__); print('cuda?', torch.cuda.is_available())"
+If cuda? False, either:
 
-Triggering application-level alerts for smoking detection events
+install the correct CUDA-enabled torch build, or
 
-This portion of the system is still under development.
+change device=0 → device='cpu' in the scripts.
 
-8. Notes and Recommendations
+CUDA out of memory while training
 
-Training on CPU is significantly slower; using a GPU is strongly recommended.
+Reduce batch size in train_smoking.py (e.g. batch=4 or batch=2).
 
-Increasing epochs beyond 20 may improve accuracy, depending on dataset quality.
+Make sure no other heavy GPU tasks are running.
 
-Dataset balancing is important for improving model recall.
+8. Contact / Notes
+Repository owner: jecxk
 
-When running inference on video, ensure the correct codec and file path are used.
-
-9. License
-
-This project is intended for educational and research purposes.
-You may modify or extend the code to suit your own applications.
+Model: YOLO11s fine-tuned for smoking detection (3 classes: cigarette, cigar, smoke).
